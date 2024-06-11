@@ -70,7 +70,7 @@ def mock_convert_llama_to_gguf(model, pad_vocab):
 class TestLabTrain:
     """Test collection for `ilab train` command."""
 
-    @patch("instructlab.utils.is_macos_with_m_chip", return_value=True)
+    @patch("instructlab.lab.utils.is_macos_with_m_chip", return_value=True)
     @patch("instructlab.mlx_explore.gguf_convert_to_mlx.load")
     @patch("instructlab.train.lora_mlx.make_data.make_data")
     @patch("instructlab.train.lora_mlx.convert.convert_between_mlx_and_pytorch")
@@ -87,8 +87,7 @@ class TestLabTrain:
         with runner.isolated_filesystem():
             setup_input_dir()
             result = runner.invoke(
-                lab.ilab,
-                ["--config=DEFAULT", "model", "train", "--input-dir", INPUT_DIR],
+                lab.cli, ["--config=DEFAULT", "train", "--input-dir", INPUT_DIR]
             )
             assert result.exit_code == 0
             load_mock.assert_not_called()
@@ -117,7 +116,7 @@ class TestLabTrain:
             assert len(make_data_mock.call_args[1]) == 1
             is_macos_with_m_chip_mock.assert_called_once()
 
-    @patch("instructlab.utils.is_macos_with_m_chip", return_value=True)
+    @patch("instructlab.lab.utils.is_macos_with_m_chip", return_value=True)
     @patch("instructlab.mlx_explore.gguf_convert_to_mlx.load")
     @patch("instructlab.train.lora_mlx.make_data.make_data")
     @patch("instructlab.train.lora_mlx.convert.convert_between_mlx_and_pytorch")
@@ -134,10 +133,9 @@ class TestLabTrain:
         with runner.isolated_filesystem():
             setup_input_dir()
             result = runner.invoke(
-                lab.ilab,
+                lab.cli,
                 [
                     "--config=DEFAULT",
-                    "model",
                     "train",
                     "--input-dir",
                     INPUT_DIR,
@@ -158,8 +156,7 @@ class TestLabTrain:
         runner = CliRunner()
         with runner.isolated_filesystem():
             result = runner.invoke(
-                lab.ilab,
-                ["--config=DEFAULT", "model", "train", "--input-dir", "invalid"],
+                lab.cli, ["--config=DEFAULT", "train", "--input-dir", "invalid"]
             )
             assert result.exception is not None
             assert "Could not read directory: invalid" in result.output
@@ -170,8 +167,7 @@ class TestLabTrain:
         with runner.isolated_filesystem():
             os.mkdir(INPUT_DIR)  # Leave out the test and train files
             result = runner.invoke(
-                lab.ilab,
-                ["--config=DEFAULT", "model", "train", "--input-dir", INPUT_DIR],
+                lab.cli, ["--config=DEFAULT", "train", "--input-dir", INPUT_DIR]
             )
             assert result.exception is not None
             assert (
@@ -187,10 +183,9 @@ class TestLabTrain:
             with runner.isolated_filesystem():
                 os.mkdir(INPUT_DIR)  # Leave out the test and train files
                 result = runner.invoke(
-                    lab.ilab,
+                    lab.cli,
                     [
                         "--config=DEFAULT",
-                        "model",
                         "train",
                         "--data-dir",
                         "invalid",
@@ -202,7 +197,7 @@ class TestLabTrain:
                 assert "Could not read from data directory" in result.output
                 assert result.exit_code == 1
 
-    @patch("instructlab.utils.is_macos_with_m_chip", return_value=True)
+    @patch("instructlab.lab.utils.is_macos_with_m_chip", return_value=True)
     @patch(
         "instructlab.train.lora_mlx.make_data.make_data",
         side_effect=FileNotFoundError(),
@@ -214,10 +209,9 @@ class TestLabTrain:
         with runner.isolated_filesystem():
             os.mkdir(INPUT_DIR)  # Leave out the test and train files
             result = runner.invoke(
-                lab.ilab,
+                lab.cli,
                 [
                     "--config=DEFAULT",
-                    "model",
                     "train",
                     "--data-dir",
                     "invalid",
@@ -231,7 +225,7 @@ class TestLabTrain:
             assert result.exit_code == 1
             is_macos_with_m_chip_mock.assert_called_once()
 
-    @patch("instructlab.utils.is_macos_with_m_chip", return_value=True)
+    @patch("instructlab.lab.utils.is_macos_with_m_chip", return_value=True)
     @patch("instructlab.mlx_explore.gguf_convert_to_mlx.load")
     @patch("instructlab.train.lora_mlx.make_data.make_data")
     @patch("instructlab.train.lora_mlx.convert.convert_between_mlx_and_pytorch")
@@ -248,10 +242,9 @@ class TestLabTrain:
         with runner.isolated_filesystem():
             setup_input_dir()
             result = runner.invoke(
-                lab.ilab,
+                lab.cli,
                 [
                     "--config=DEFAULT",
-                    "model",
                     "train",
                     "--input-dir",
                     INPUT_DIR,
@@ -265,7 +258,7 @@ class TestLabTrain:
             make_data_mock.assert_not_called()
             is_macos_with_m_chip_mock.assert_called_once()
 
-    @patch("instructlab.utils.is_macos_with_m_chip", return_value=True)
+    @patch("instructlab.lab.utils.is_macos_with_m_chip", return_value=True)
     @patch("instructlab.mlx_explore.utils.fetch_tokenizer_from_hub")
     @patch("instructlab.mlx_explore.gguf_convert_to_mlx.load")
     @patch("instructlab.train.lora_mlx.make_data.make_data")
@@ -285,11 +278,8 @@ class TestLabTrain:
             setup_input_dir()
             setup_load()
             result = runner.invoke(
-                lab.ilab,
+                lab.train,
                 [
-                    "--config=DEFAULT",
-                    "model",
-                    "train",
                     "--input-dir",
                     INPUT_DIR,
                     "--tokenizer-dir",
@@ -311,7 +301,7 @@ class TestLabTrain:
             assert len(fetch_tokenizer_from_hub_mock.call_args[0]) == 2
             is_macos_with_m_chip_mock.assert_called_once()
 
-    @patch("instructlab.utils.is_macos_with_m_chip", return_value=True)
+    @patch("instructlab.lab.utils.is_macos_with_m_chip", return_value=True)
     @patch("instructlab.mlx_explore.utils.fetch_tokenizer_from_hub")
     @patch("instructlab.mlx_explore.gguf_convert_to_mlx.load")
     @patch("instructlab.train.lora_mlx.make_data.make_data")
@@ -331,11 +321,8 @@ class TestLabTrain:
             setup_input_dir()
             setup_load()
             result = runner.invoke(
-                lab.ilab,
+                lab.train,
                 [
-                    "--config=DEFAULT",
-                    "model",
-                    "train",
                     "--input-dir",
                     INPUT_DIR,
                     "--tokenizer-dir",
@@ -355,7 +342,7 @@ class TestLabTrain:
             fetch_tokenizer_from_hub_mock.assert_not_called()
             is_macos_with_m_chip_mock.assert_called_once()
 
-    @patch("instructlab.utils.is_macos_with_m_chip", return_value=False)
+    @patch("instructlab.lab.utils.is_macos_with_m_chip", return_value=False)
     @patch.object(linux_train, "linux_train")
     @patch(
         "instructlab.llamacpp.llamacpp_convert_to_gguf.convert_llama_to_gguf",
@@ -372,8 +359,7 @@ class TestLabTrain:
             setup_input_dir()
             setup_linux_dir()
             result = runner.invoke(
-                lab.ilab,
-                ["--config=DEFAULT", "model", "train", "--input-dir", INPUT_DIR],
+                lab.cli, ["--config=DEFAULT", "train", "--input-dir", INPUT_DIR]
             )
             assert result.exit_code == 0
             convert_llama_to_gguf_mock.assert_called_once()
@@ -397,7 +383,7 @@ class TestLabTrain:
             is_macos_with_m_chip_mock.assert_called_once()
             assert not os.path.isfile(LINUX_GGUF_FILE)
 
-    @patch("instructlab.utils.is_macos_with_m_chip", return_value=False)
+    @patch("instructlab.lab.utils.is_macos_with_m_chip", return_value=False)
     @patch("instructlab.train.linux_train.linux_train")
     @patch(
         "instructlab.llamacpp.llamacpp_convert_to_gguf.convert_llama_to_gguf",
@@ -411,10 +397,9 @@ class TestLabTrain:
             setup_input_dir()
             setup_linux_dir()
             result = runner.invoke(
-                lab.ilab,
+                lab.cli,
                 [
                     "--config=DEFAULT",
-                    "model",
                     "train",
                     "--input-dir",
                     INPUT_DIR,
@@ -431,10 +416,9 @@ class TestLabTrain:
 
             # Test with invalid num_epochs
             result = runner.invoke(
-                lab.ilab,
+                lab.cli,
                 [
                     "--config=DEFAULT",
-                    "model",
                     "train",
                     "--input-dir",
                     INPUT_DIR,

@@ -15,8 +15,8 @@ import pytest
 # First Party
 from instructlab import lab
 from instructlab.config import get_default_config, write_config
-from instructlab.data.generator.generate_data import generate_data
-from instructlab.data.generator.utils import GenerateException
+from instructlab.generator.generate_data import generate_data
+from instructlab.generator.utils import GenerateException
 
 # Local
 from .taxonomy import MockTaxonomy
@@ -27,7 +27,7 @@ class TestLabGenerate:
     """Test collection for `ilab generate` command."""
 
     @patch(
-        "instructlab.data.generator.generate_data.generate_data",
+        "instructlab.generator.generate_data.generate_data",
         side_effect=GenerateException("Connection Error"),
     )
     def test_generate_exception_error(self, generate_data_mock):
@@ -35,10 +35,9 @@ class TestLabGenerate:
         with runner.isolated_filesystem():
             mt = MockTaxonomy(pathlib.Path("taxonomy"))
             result = runner.invoke(
-                lab.ilab,
+                lab.cli,
                 [
                     "--config=DEFAULT",
-                    "data",
                     "generate",
                     "--taxonomy-base",
                     "main",
@@ -62,10 +61,9 @@ class TestLabGenerate:
         runner = CliRunner()
         with runner.isolated_filesystem():
             result = runner.invoke(
-                lab.ilab,
+                lab.cli,
                 [
                     "--config=DEFAULT",
-                    "data",
                     "generate",
                     "--endpoint-url",
                     "localhost:8000",
@@ -81,10 +79,9 @@ class TestLabGenerate:
         with runner.isolated_filesystem():
             mt = MockTaxonomy(pathlib.Path("taxonomy"))
             result = runner.invoke(
-                lab.ilab,
+                lab.cli,
                 [
                     "--config=DEFAULT",
-                    "data",
                     "generate",
                     "--taxonomy-base",
                     "main",
@@ -109,10 +106,9 @@ class TestLabGenerate:
                     "compositional_skills/tracked/qna.yaml", qnafile.read()
                 )
                 result = runner.invoke(
-                    lab.ilab,
+                    lab.cli,
                     [
                         "--config=DEFAULT",
-                        "data",
                         "generate",
                         "--taxonomy-base",
                         "main",
@@ -129,7 +125,7 @@ class TestLabGenerate:
                 mt.teardown()
 
     @patch(
-        "instructlab.data.generator.generate_data.get_instructions_from_model",
+        "instructlab.generator.generate_data.get_instructions_from_model",
         side_effect=GenerateException(
             "There was a problem connecting to the OpenAI server."
         ),
@@ -180,11 +176,10 @@ class TestLabGenerate:
                     "compositional_skills/tracked/qna.yaml", qnafile.read()
                 )
                 result = runner.invoke(
-                    lab.ilab,
+                    lab.cli,
                     [
                         "--config",
                         cfg_file,
-                        "data",
                         "generate",
                         "--taxonomy-base",
                         "main",
@@ -203,7 +198,7 @@ class TestLabGenerate:
                 mt.teardown()
 
     @patch(
-        "instructlab.data.generator.generate_data.get_instructions_from_model",
+        "instructlab.generator.generate_data.get_instructions_from_model",
         return_value=(testdata.generate_data_return_value, 0),
     )
     def test_generate_no_error(self, get_instructions_from_model):
@@ -244,11 +239,11 @@ class TestLabGenerate:
                 mt.teardown()
 
     @patch(
-        "instructlab.data.generator.generate_data.get_instructions_from_model",
+        "instructlab.generator.generate_data.get_instructions_from_model",
         return_value=(testdata.generate_data_return_value, 0),
     )
     @patch(
-        "instructlab.utils.read_taxonomy",
+        "instructlab.generator.generate_data.read_taxonomy",
         return_value=testdata.knowledge_seed_instruction,
     )
     def test_knowledge_docs_no_error(self, read_taxonomy, get_instructions_from_model):
